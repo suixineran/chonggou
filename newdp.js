@@ -1,5 +1,5 @@
-const crypto = require("crypto")
-const request = require("request")
+const crypto = require('crypto')
+const request = require('request')
 
 const url = 'https://dm.aliyuncs.com/'
 
@@ -8,7 +8,7 @@ const urlFromParam = (param) => {
     let l = []
     for (let i = 0; i < keys.length; i++) {
         let k = keys[i]
-        let v = mapper[k]
+        let v = param[k]
         let s = `${encodeURIComponent(k)}&${encodeURIComponent(v)}`
         l.push(s)
     }
@@ -21,17 +21,17 @@ const reqBodyFromParma = (param) => {
     let keys = Object.keys(param)
     for (var i = 0; i < keys.length; i++) {
         let key = keys[i]
-        let value = parma[key]
+        let value = param[key]
         r.push(`${i}=${value}`)
     }
     return r
 }
 
 const reqBodyValue = (config, param) => {
-    signStr = urlFromParam(param)
-    sign = 'POST&%2F&' + encodeURIComponent(signStr)
+    let signStr = urlFromParam(param)
+    let sign = 'POST&%2F&' + encodeURIComponent(signStr)
     let key = config.accessKeySecret + '&'
-    const hmac = crypto.createHmac("sha1", key)
+    let hmac = crypto.createHmac('sha1', key)
     let str = hmac.update(sign).digest('base64')
     let s = encodeURIComponent(str)
     let r = ['Signature=' + s]
@@ -61,7 +61,7 @@ const apiPost = (url, body, callback) => {
     return p
 }
 
-const baseParam = (action, nonce) => {
+const baseParam = (action, nonce, config) => {
     let o = {
         AccessKeyId: config.accessKeyID,
         Action: action,
@@ -82,7 +82,7 @@ const actionSingle = (config) => {
     if (!config.toAddress) {
         errorMsg.push('toAddress required')
     }
-    let param = baseParam('single')
+    let param = baseParam('single', nonce, config)
     param.ReplyToAddress = Boolean(config.replyToAddress)
     param.ToAddress = config.toAddress
     if (config.fromAlias) {
@@ -108,7 +108,7 @@ const actionBatch = (config) => {
     if (!config.receiversName) {
         errorMsg.push('receiversName required')
     }
-    let param = baseParam('batch')
+    let param = baseParam('batch', nonce, config)
     param.TemplateName = config.templateName
     param.ReceiversName = config.receiversName
     if (config.tagName) {
