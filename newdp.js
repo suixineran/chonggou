@@ -1,7 +1,7 @@
-const crypto = require('crypto')
-const request = require('request')
+const crypto = require("crypto")
+const request = require("request")
 
-const url = 'https://dm.aliyuncs.com/'
+const url = "https://dm.aliyuncs.com/"
 
 const urlFromParam = (param) => {
     let keys = Object.keys(param)
@@ -12,7 +12,7 @@ const urlFromParam = (param) => {
         let s = `${encodeURIComponent(k)}&${encodeURIComponent(v)}`
         l.push(s)
     }
-    let url = l.sort().join('&')
+    let url = l.sort().join("&")
     return url
 }
 
@@ -29,14 +29,14 @@ const reqBodyFromParma = (param) => {
 
 const reqBodyValue = (config, param) => {
     let signStr = urlFromParam(param)
-    let sign = 'POST&%2F&' + encodeURIComponent(signStr)
-    let key = config.accessKeySecret + '&'
-    let hmac = crypto.createHmac('sha1', key)
-    let str = hmac.update(sign).digest('base64')
+    let sign = "POST&%2F&" + encodeURIComponent(signStr)
+    let key = config.accessKeySecret + "&"
+    let hmac = crypto.createHmac("sha1", key)
+    let str = hmac.update(sign).digest("base64")
     let s = encodeURIComponent(str)
-    let r = ['Signature=' + s]
+    let r = ["Signature"= + s]
     let r1 = reqBodyFromParma(param)
-    let rbv = r.concat(r1).join('&')
+    let rbv = r.concat(r1).join("&")
     return rbv
 }
 
@@ -45,11 +45,11 @@ const apiPost = (url, body, callback) => {
     let p = new Promise((resolve, reject) => {
         request({
             headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
+                "Content-Type": "application/x-www-form-urlencoded",
             },
             uri: url,
             body: body,
-            method: 'POST',
+            method: "POST",
         }, function(err, res, body) {
             if (err !== null) {
                 reject(err)
@@ -61,28 +61,28 @@ const apiPost = (url, body, callback) => {
     return p
 }
 
-const baseParam = (action, nonce, config) => {
+const baseParam = (action, nonce, date, config) => {
     let o = {
         AccessKeyId: config.accessKeyID,
         Action: action,
-        Format: 'JSON',
+        Format: "JSON",
         AccountName: config.accountName,
-        AddressType: typeof config.addressType == 'undefined' ? 0 : config.addressType,
-        SignatureMethod: 'HMAC-SHA1',
+        AddressType: typeof config.addressType == "undefined" ? 0 : config.addressType,
+        SignatureMethod: "HMAC-SHA1",
         SignatureNonce: nonce,
-        SignatureVersion: '1.0',
+        SignatureVersion: "1.0",
         TemplateCode: config.templateCode,
         Timestamp: date.toISOString(),
-        Version: '2015-11-23',
+        Version: "2015-11-23",
     }
     return o
 }
 
 const actionSingle = (config) => {
     if (!config.toAddress) {
-        errorMsg.push('toAddress required')
+        errorMsg.push("toAddress required")
     }
-    let param = baseParam('single', nonce, config)
+    let param = baseParam("single", nonce, date, config)
     param.ReplyToAddress = Boolean(config.replyToAddress)
     param.ToAddress = config.toAddress
     if (config.fromAlias) {
@@ -103,12 +103,12 @@ const actionSingle = (config) => {
 
 const actionBatch = (config) => {
     if (!config.templateName) {
-        errorMsg.push('templateName required')
+        errorMsg.push("templateName required")
     }
     if (!config.receiversName) {
-        errorMsg.push('receiversName required')
+        errorMsg.push("receiversName required")
     }
-    let param = baseParam('batch', nonce, config)
+    let param = baseParam("batch", nonce, date, config)
     param.TemplateName = config.templateName
     param.ReceiversName = config.receiversName
     if (config.tagName) {
@@ -123,30 +123,30 @@ module.exports = function(config, cb) {
     const errorMsg = []
     config = config || {}
     if (!config.accessKeyID) {
-        errorMsg.push('accessKeyID required')
+        errorMsg.push("accessKeyID required")
     }
     if (!config.accessKeySecret) {
-        errorMsg.push('accessKeySecret required')
+        errorMsg.push("accessKeySecret required")
     }
     if (!config.accountName) {
-        errorMsg.push('accountName required')
+        errorMsg.push("accountName required")
     }
     let actionMapper = {
-        'single': actionSingle,
-        'batch': actionBatch,
+        "single": actionSingle,
+        "batch": actionBatch,
     }
     let param = {}
     if (Object.keys(actionMapper).includes(config.action)) {
         let func = actionMapper[config.action]
         param = func()
     } else {
-        cb('error action', null)
+        cb("error action", null)
     }
     if (errorMsg.length > 0) {
         return cb(errorMsg.join(','))
     }
     let body = reqBodyValue(config, param)
-    const url = 'https://dm.aliyuncs.com/'
+    const url = "https://dm.aliyuncs.com/"
     apiPost(url, body).then((data) => {
         cb(data)
     })
