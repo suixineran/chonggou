@@ -1,5 +1,5 @@
 const crypto = require("crypto")
-const axios = require('axios')
+const axios = require("axios")
 
 const url = "https://dm.aliyuncs.com/"
 
@@ -98,7 +98,7 @@ const actionBatch = (config, errorMsg) => {
 const apiPost = (url, body,  errorMsg) => {
     let p = new Promise((resolve, reject) => {
         if (errorMsg.length) {
-            reject(errorMsg.join(','))
+            reject(errorMsg.join(","))
         }
         let request = axios({
             headers: {
