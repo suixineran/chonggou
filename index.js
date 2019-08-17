@@ -31,7 +31,7 @@ const urlFromParam = (param) => {
 const reqBodyFromParma = (param) => {
     let r =[]
     let keys = Object.keys(param)
-    for (var i = 0; i < keys.length; i++) {
+    for (let i = 0; i < keys.length; i++) {
         let key = keys[i]
         let value = param[key]
         r.push(`${key}=${value}`)
