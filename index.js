@@ -3,6 +3,18 @@ const axios = require("axios")
 
 const url = "https://dm.aliyuncs.com/"
 
+const pushErr = (config, errorMsg, message) => {
+    if (!config[message]) {
+        errorMsg.push("${message} required")
+    }
+}
+
+const configToParam = (config, param, message) => {
+    if (config[message]) {
+        param[message] = config[message]
+    }
+}
+
 const urlFromParam = (param) => {
     let keys = Object.keys(param)
     let l = []
@@ -58,40 +70,24 @@ const baseParam = (action, config) => {
 }
 
 const actionSingle = (config, errorMsg) => {
-    if (!config.ToAddress) {
-        errorMsg.push("toAddress required")
-    }
+    pushErr(config, errorMsg, "ToAddress")
     let param = baseParam("SingleSendMail", config)
     param.ReplyToAddress = Boolean(config.replyToAddress)
     param.ToAddress = config.ToAddress
-    if (config.FromAlias) {
-        param.FromAlias = config.FromAlias
-    }
-    if (config.Subject) {
-        param.Subject = config.Subject
-    }
-    if (config.HtmlBody) {
-        param.HtmlBody = config.HtmlBody
-    }
-    if (config.TextBody) {
-        param.TextBody = config.TextBody
-    }
+    configToParam(config, param, "FromAlias")
+    configToParam(config, param, "Subject")
+    configToParam(config, param, "HtmlBody")
+    configToParam(config, param, "TextBody")
     return param
 }
 
 const actionBatch = (config, errorMsg) => {
-    if (!config.TemplateName) {
-        errorMsg.push("templateName required")
-    }
-    if (!config.ReceiversName) {
-        errorMsg.push("receiversName required")
-    }
+    pushErr(config, errorMsg, "TemplateName")
+    pushErr(config, errorMsg, "ReceiversName")
     let param = baseParam("BatchSendMail", config)
     param.TemplateName = config.TemplateName
     param.ReceiversName = config.ReceiversName
-    if (config.TagName) {
-        param.TagName = config.TagName
-    }
+    configToParam(config, param, "TagName")
     return param
 }
 
@@ -120,25 +116,18 @@ module.exports = function(config) {
     let errorMsg = []
     config = config || {}
     let param = {}
-    if (!config.AccessKeyID) {
-        errorMsg.push("accessKeyID required")
-    }
-    if (!config.AccessKeySecret) {
-        errorMsg.push("accessKeySecret required")
-    }
-    if (!config.AccountName) {
-        errorMsg.push("accountName required")
-    }
-    if (!config.Action) {
-        errorMsg.push("Action required")
-    }
+    pushErr(config, errorMsg, "AccessKeyID")
+    pushErr(config, errorMsg, "AccessKeySecret")
+    pushErr(config, errorMsg, "AccountName")
+    pushErr(config, errorMsg, "Action")
+
     let actionMapper = {
         "SingleSendMail": actionSingle,
         "BatchSendMail": actionBatch,
     }
     if (Object.keys(actionMapper).includes(config.Action)) {
         let func = actionMapper[config.Action]
-        param = func(config, errorMsg)
+        param = func(config, errorMsg, param)
     }
     let body = reqBodyValue(config, param)
     return  apiPost(url, body, errorMsg)
